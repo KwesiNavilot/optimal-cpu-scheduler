@@ -31,7 +31,6 @@ public class Main {
         burstTime = new ArrayList<>(numberOfProcesses);
         completionTime = new ArrayList<>(numberOfProcesses);
         turnAroundTime = new ArrayList<>(numberOfProcesses);
-        //waitingTime = new ArrayList<>(numberOfProcesses);
 
         //Receive the arrival time and burst time for each process
         for (int i = 0; i < numberOfProcesses; i++) {
@@ -66,6 +65,7 @@ public class Main {
 
         System.out.print("\nEnter time quantum: ");
         int timeQuantum = scanner.nextInt();
+        //int numberOfProcesses = processes.size();
 
         for (int i = 0; i < processes.size(); i++) {
             if (burstTime.get(i) > timeQuantum) {
@@ -88,6 +88,7 @@ public class Main {
 
             //Calculate the totals and throughput
             totalTurnAroundTime += turnAroundTime.get(i);
+//            System.out.println("Total TAT: " + totalTurnAroundTime);
         }
 
         //Remove all elements that are 0s
@@ -111,11 +112,25 @@ public class Main {
                     + "\t\t\t\t" + completionTime.get(i) + "\t\t\t" + turnAroundTime.get(i));
         }
 
-        System.out.println("The Average Turn Around Time is : " + (totalTurnAroundTime / numberOfProcesses));    // printing average turnaround time.
+        //System.out.println("\nThe Average Turn Around Time is : " + (totalTurnAroundTime / numberOfProcesses));    // printing average turnaround time.
+
+        shortestRemainingTimeFirst(processes, arrivalTime, burstTime, completionTime, turnAroundTime);
     }
 
-    public static void shortestRemainingTimeFirst() {
+    public static void shortestRemainingTimeFirst(ArrayList<Integer> processes, ArrayList<Integer> arrivalTime, ArrayList<Integer> burstTime,
+                                                  ArrayList<Integer> completionTime, ArrayList<Integer> turnAroundTime) {
+        System.out.println("\n\nAPPLYING SRTF");
 
+        waitingTime = new ArrayList<>(processes.size());
+
+        for (int i = 0; i < processes.size(); i++) {
+            System.out.println("TAT: " + turnAroundTime.get(i));
+            System.out.println("BT: " + burstTime.get(i));
+
+            waitingTime.set(i, turnAroundTime.get(i) - burstTime.get(i));
+
+            System.out.println("WT: " + waitingTime.get(i));
+        }
     }
 
 }
