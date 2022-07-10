@@ -17,9 +17,9 @@ public class Main {
     static float totalWaitTime = 0; // the total time it takes to wait
     static float totalTurnAroundTime = 0;   // the total turn around time
 
+    static Scanner scanner = new Scanner(System.in);        //Scanner to receive user inputs
+
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);        //Scanner to receive user inputs
-        int timeQuantum;
 
         //Ask the user for their number of processes
         System.out.print("Enter no of processes: ");
@@ -44,15 +44,12 @@ public class Main {
             processes.add(i, i + 1);
         }
 
-        System.out.print("Enter time quantum: ");
-        timeQuantum = scanner.nextInt();
-
         System.out.println("\nProcessID\tArrival Time\tBurst Time");
         for (int i = 0; i < numberOfProcesses; i++) {
             System.out.println("\t" + processes.get(i) + "\t\t\t" + arrivalTime.get(i) + "\t\t\t\t" + burstTime.get(i));
         }
 
-        roundRobin(timeQuantum, processes, burstTime);
+        roundRobin(processes, burstTime);
 
 
 //        System.out.println("\nProcessID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around\tWaiting Time");
@@ -61,28 +58,34 @@ public class Main {
 //        }
     }
 
-    public static void roundRobin(int timeQuantum, ArrayList<Integer> processes, ArrayList<Integer> burstTime) {
+    public static void roundRobin(ArrayList<Integer> processes, ArrayList<Integer> burstTime) {
         int temp;       //variable for holding temporal values
 
-        for (int i = 0; i < processes.size(); i++) {
-            System.out.println("Process: " + processes.get(i) + "\nBurst Time: " + burstTime.get(i) + "\nTime Quantum: " + timeQuantum);
+        System.out.print("\nEnter time quantum: ");
+        int timeQuantum = scanner.nextInt();
 
+        for (int i = 0; i < processes.size(); i++) {
             if (burstTime.get(i) > timeQuantum) {
-                System.out.println("Greater than time quantum. Deducting....");
                 temp = burstTime.get(i) - timeQuantum;
                 burstTime.set(i, temp);
             } else {
-                System.out.println("Lower/equal to time quantum. Removing....");
-                processes.remove(i);
-                burstTime.remove(i);
+                burstTime.set(i, 0);
+                processes.set(i, 0);
             }
         }
 
+        //Remove all 0s in the processes
+        processes.removeIf(val -> (val < 1));
+        processes.trimToSize();
+
+        //Remove all 0s in the burstTime
+        burstTime.removeIf(val -> (val < 1));
+        burstTime.trimToSize();
+
         System.out.println("\nProcessID\tBurst Time");
         for (int i = 0; i < processes.size(); i++) {
-            System.out.println("\t" + processes.get(i) + "\t\t\t\t" + burstTime.get(i));
+            System.out.println("\t" + processes.get(i) + "\t\t\t" + burstTime.get(i));
         }
-
     }
 
 }
