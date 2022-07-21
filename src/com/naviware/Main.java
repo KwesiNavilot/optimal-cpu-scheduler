@@ -1,12 +1,13 @@
 package com.naviware;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
 
     static int numberOfProcesses;   // total number of processes
-    static int temp;       //variable for holding temporal values
+    static int temp, aggregate;       //variable for holding temporal values
 
     static ArrayList<Integer> processes;
     static ArrayList<Integer> arrivalTime;       // the arrival time of processes
@@ -22,27 +23,29 @@ public class Main {
 
     public static void main(String[] args) {
         //Ask the user for their number of processes
-        System.out.print("Enter no of processes: ");
-        numberOfProcesses = scanner.nextInt();
+//        System.out.print("Enter no of processes: ");
+//        numberOfProcesses = scanner.nextInt();
+//
+//        //assign proportionate values to all components of the algorithm
+//        processes = new ArrayList<>(numberOfProcesses);
+//        arrivalTime = new ArrayList<>(numberOfProcesses);
+//        burstTime = new ArrayList<>(numberOfProcesses);
+//        completionTime = new ArrayList<>(numberOfProcesses);
+//        turnAroundTime = new ArrayList<>(numberOfProcesses);
+//        waitingTime = new ArrayList<>(numberOfProcesses);
+//
+//        //Receive the arrival time and burst time for each process
+//        for (int i = 0; i < numberOfProcesses; i++) {
+//            System.out.print("Enter arrival time for Process " + (i + 1) + ": ");
+//            arrivalTime.add(i, scanner.nextInt());
+//
+//            System.out.print("Enter burst time for Process " + (i + 1) + ": ");
+//            burstTime.add(i, scanner.nextInt());
+//
+//            processes.add(i, i + 1);
+//        }
 
-        //assign proportionate values to all components of the algorithm
-        processes = new ArrayList<>(numberOfProcesses);
-        arrivalTime = new ArrayList<>(numberOfProcesses);
-        burstTime = new ArrayList<>(numberOfProcesses);
-        completionTime = new ArrayList<>(numberOfProcesses);
-        turnAroundTime = new ArrayList<>(numberOfProcesses);
-        waitingTime = new ArrayList<>(numberOfProcesses);
-
-        //Receive the arrival time and burst time for each process
-        for (int i = 0; i < numberOfProcesses; i++) {
-            System.out.print("Enter arrival time for Process " + (i + 1) + ": ");
-            arrivalTime.add(i, scanner.nextInt());
-
-            System.out.print("Enter burst time for Process " + (i + 1) + ": ");
-            burstTime.add(i, scanner.nextInt());
-
-            processes.add(i, i + 1);
-        }
+        jobsFactory();
 
         //sorting according to arrival times
         for (int i = 0; i < processes.size(); i++) {
@@ -66,6 +69,7 @@ public class Main {
             }
         }
 
+        //calculate completion time
         for (int i = 0; i < processes.size(); i++) {
             //completion time of current process = arrivalTime + burstTime
             if (i == 0) {
@@ -85,21 +89,26 @@ public class Main {
             waitingTime.add(i, turnAroundTime.get(i) - burstTime.get(i));
         }
 
+        //Print out results
         System.out.println("\nProcessID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around\tWaiting Time");
-
         for (int i = 0; i < numberOfProcesses; i++) {
             System.out.println("\t" + processes.get(i) + "\t\t\t" + arrivalTime.get(i) + "\t\t\t\t" + burstTime.get(i)
                     + "\t\t\t\t" + completionTime.get(i) + "\t\t\t" + turnAroundTime.get(i) + "\t\t\t" + waitingTime.get(i));
         }
 
+        //call the RR algorithm
         roundRobin(processes, arrivalTime, burstTime, completionTime, turnAroundTime, waitingTime);
     }
 
     public static void roundRobin(ArrayList<Integer> processes, ArrayList<Integer> arrivalTime, ArrayList<Integer> burstTime,
                                   ArrayList<Integer> completionTime, ArrayList<Integer> turnAroundTime, ArrayList<Integer> waitingTime) {
-        System.out.print("\nEnter time quantum: ");
-        int timeQuantum = scanner.nextInt();
+        System.out.println("\n\nAPPLYING ROUND ROBIN");
 
+        //Find the mean and use it as the dynamic mean
+        int timeQuantum = aggregate / numberOfProcesses;
+        System.out.println("Time Quantum: " + timeQuantum);
+
+        //go through the queue and process jobs
         for (int i = 0; i < processes.size(); i++) {
             if (burstTime.get(i) > timeQuantum) {
                 //process and update the burst time
@@ -143,6 +152,7 @@ public class Main {
         completionTime.trimToSize();
 
         //Display remaining processes and their burst times after performing Round Robin
+        System.out.println("RESULT AFTER APPLYING ROUND ROBIN");
         System.out.println("\nProcessID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around"); //\tWaiting Time");
         for (int i = 0; i < processes.size(); i++) {
             System.out.println("\t" + processes.get(i) + "\t\t\t" + arrivalTime.get(i) + "\t\t\t\t" + burstTime.get(i)
@@ -151,48 +161,71 @@ public class Main {
 
         //System.out.println("\nThe Average Turn Around Time is : " + (totalTurnAroundTime / numberOfProcesses));    // printing average turnaround time.
 
+        //continue with the SRTF algorithm
         shortestRemainingTimeFirst(processes, arrivalTime, burstTime, completionTime, turnAroundTime);
     }
 
     public static void shortestRemainingTimeFirst(ArrayList<Integer> processes, ArrayList<Integer> arrivalTime, ArrayList<Integer> burstTime,
                                                   ArrayList<Integer> completionTime, ArrayList<Integer> turnAroundTime) {
-        System.out.println("\nAPPLYING SRTF");
-        System.out.println("Processes: " + processes.size());
-        int p = processes.size();
+        System.out.println("\nAPPLYING SHORTEST REMAINING TIME FIRST");
 
-        waitingTime = new ArrayList<>(5);
-        System.out.println(waitingTime.size());
+        while (processes.size() != 0) {
+            //starting from 0 and picking the first element
+            temp = burstTime.get(0);
+            int index = 0;
 
-        for (int i = 0; i < processes.size(); i++) {
-            System.out.println("Index: " + i);
-            System.out.println("TAT: " + turnAroundTime.get(i));
-            System.out.println("BT: " + burstTime.get(i));
-
-            waitingTime.set(i, turnAroundTime.get(i) - burstTime.get(i));
-
-            System.out.println("WT: " + waitingTime.get(i));
-        }
-    }
-
-    public static void calculateTimings() {
-        //Calculate timings
-        for (int i = 0; i < processes.size(); i++) {
-            //completion time of current process = arrivalTime + burstTime
-            if (i == 0) {
-                completionTime.add(i, arrivalTime.get(i) + burstTime.get(i));
-            } else {
-                if (arrivalTime.get(i) > completionTime.get(i - 1)) {
-                    completionTime.add(i, arrivalTime.get(i) + burstTime.get(i));
-                } else {
-                    completionTime.add(i, completionTime.get(i - 1) + burstTime.get(i));
+            //finding the smallest number
+            for (int i = 0; i < processes.size(); i++) {
+                if (burstTime.get(i) < temp) {
+                    temp = burstTime.get(i);
+                    index = i;
                 }
             }
 
-            //turnaround time = completion time - arrival time
-            turnAroundTime.add(i, completionTime.get(i) - arrivalTime.get(i));
+            System.out.println("Smallest burst time: " + temp);
+            System.out.println("Index of smallest: " + index);
 
-            //waiting time = completion time - burst time
-            waitingTime.add(i, turnAroundTime.get(i) - burstTime.get(i));
+            System.out.println("Removing from index " + index + " Value is " + burstTime.get(index));
+            burstTime.remove(index);
+            processes.remove(index);
+            arrivalTime.remove(index);
+            turnAroundTime.remove(index);
+            completionTime.remove(index);
+
+            processes.trimToSize();
+            burstTime.trimToSize();
+            arrivalTime.trimToSize();
+            turnAroundTime.trimToSize();
+            completionTime.trimToSize();
+
+            System.out.println("Size after trim is " + processes.size());
+
+            System.out.println(burstTime);
+        }
+    }
+
+    //randomizer to generate jobs
+    public static void jobsFactory() {
+        Random random = new Random();
+        numberOfProcesses = random.nextInt(1, 100);
+        System.out.println("Number of processes: " + numberOfProcesses);
+
+        //assign proportionate values to all components of the algorithm
+        processes = new ArrayList<>(numberOfProcesses);
+        arrivalTime = new ArrayList<>(numberOfProcesses);
+        burstTime = new ArrayList<>(numberOfProcesses);
+        completionTime = new ArrayList<>(numberOfProcesses);
+        turnAroundTime = new ArrayList<>(numberOfProcesses);
+        waitingTime = new ArrayList<>(numberOfProcesses);
+
+        //Receive the arrival time and burst time for each process
+        for (int i = 0; i < numberOfProcesses; i++) {
+            arrivalTime.add(i, random.nextInt(1, 100));
+
+            burstTime.add(i, random.nextInt(1, 100));
+            aggregate += burstTime.get(i);
+
+            processes.add(i, i + 1);
         }
     }
 }
