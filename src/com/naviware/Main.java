@@ -19,32 +19,7 @@ public class Main {
     static float totalWaitTime = 0; // the total time it takes to wait
     static float totalTurnAroundTime = 0;   // the total turn around time
 
-    static Scanner scanner = new Scanner(System.in);        //Scanner to receive user inputs
-
     public static void main(String[] args) {
-        //Ask the user for their number of processes
-//        System.out.print("Enter no of processes: ");
-//        numberOfProcesses = scanner.nextInt();
-//
-//        //assign proportionate values to all components of the algorithm
-//        processes = new ArrayList<>(numberOfProcesses);
-//        arrivalTime = new ArrayList<>(numberOfProcesses);
-//        burstTime = new ArrayList<>(numberOfProcesses);
-//        completionTime = new ArrayList<>(numberOfProcesses);
-//        turnAroundTime = new ArrayList<>(numberOfProcesses);
-//        waitingTime = new ArrayList<>(numberOfProcesses);
-//
-//        //Receive the arrival time and burst time for each process
-//        for (int i = 0; i < numberOfProcesses; i++) {
-//            System.out.print("Enter arrival time for Process " + (i + 1) + ": ");
-//            arrivalTime.add(i, scanner.nextInt());
-//
-//            System.out.print("Enter burst time for Process " + (i + 1) + ": ");
-//            burstTime.add(i, scanner.nextInt());
-//
-//            processes.add(i, i + 1);
-//        }
-
         jobsFactory();
 
         //sorting according to arrival times
@@ -183,9 +158,8 @@ public class Main {
             }
 
             System.out.println("Smallest burst time: " + temp);
-            System.out.println("Index of smallest: " + index);
 
-            System.out.println("Removing from index " + index + " Value is " + burstTime.get(index));
+            //executing and terminating process
             burstTime.remove(index);
             processes.remove(index);
             arrivalTime.remove(index);
@@ -197,8 +171,6 @@ public class Main {
             arrivalTime.trimToSize();
             turnAroundTime.trimToSize();
             completionTime.trimToSize();
-
-            System.out.println("Size after trim is " + processes.size());
 
             System.out.println(burstTime);
         }
