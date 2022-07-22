@@ -2,7 +2,6 @@ package com.naviware;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Scanner;
 
 public class Main {
 
@@ -16,9 +15,10 @@ public class Main {
     static ArrayList<Integer> turnAroundTime;    // the difference b/n completion time and arrival time
     static ArrayList<Integer> waitingTime;       // the difference between turn around time and burst time
 
-    static float totalWaitTime = 0; // the total time it takes to wait
-    static float totalTurnAroundTime = 0;   // the total turn around time
-    static float averageTurnAroundTime = 0;   // the total turn around time
+    static float totalWaitTime; // the total time it takes to wait
+    static float totalTurnAroundTime;   // the total turn around time
+    static float averageTurnAroundTime;   // the average turn around time
+    static float averageWaitingTime;
 
     public static void main(String[] args) {
         jobsFactory();
@@ -58,18 +58,18 @@ public class Main {
                 }
             }
 
+            //waiting time = completion time - burst time
+            waitingTime.add(i, completionTime.get(i) - burstTime.get(i));
+
             //turnaround time = completion time - arrival time
             turnAroundTime.add(i, completionTime.get(i) - arrivalTime.get(i));
-
-            //waiting time = completion time - burst time
-            waitingTime.add(i, turnAroundTime.get(i) - burstTime.get(i));
         }
 
         //Print out results
-        System.out.println("\nProcessID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around\tWaiting Time");
+        System.out.println("\nProcessID\tArrival Time\tBurst Time\tWaiting Time\tTurn Around\tCompletion Time");
         for (int i = 0; i < numberOfProcesses; i++) {
             System.out.println("\t" + processes.get(i) + "\t\t\t" + arrivalTime.get(i) + "\t\t\t\t" + burstTime.get(i)
-                    + "\t\t\t\t" + completionTime.get(i) + "\t\t\t" + turnAroundTime.get(i) + "\t\t\t" + waitingTime.get(i));
+                    + "\t\t\t" + waitingTime.get(i) + "\t\t\t\t" + turnAroundTime.get(i) + "\t\t\t" + completionTime.get(i));
         }
 
         //call the RR algorithm
@@ -96,7 +96,7 @@ public class Main {
                 turnAroundTime.set(i, completionTime.get(i) - arrivalTime.get(i));
 
                 //waiting time = completion time - burst time
-                waitingTime.set(i, turnAroundTime.get(i) - burstTime.get(i));
+                waitingTime.set(i, completionTime.get(i) - burstTime.get(i));
             } else {
                 burstTime.set(i, 0);
                 processes.set(i, 0);
@@ -108,11 +108,8 @@ public class Main {
 
             //Calculate the totals and throughput
             totalTurnAroundTime += turnAroundTime.get(i);
+            totalWaitTime += waitingTime.get(i);
         }
-
-        //calculate average turnAroundTime
-        averageTurnAroundTime = totalTurnAroundTime / numberOfProcesses;
-        System.out.println("Average TAT: " + averageTurnAroundTime);
 
         //Remove all elements that are 0s
         processes.removeIf(val -> (val < 1));
@@ -132,13 +129,17 @@ public class Main {
 
         //Display remaining processes and their burst times after performing Round Robin
         System.out.println("\n\nRESULT AFTER APPLYING ROUND ROBIN");
-        System.out.println("ProcessID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around"); //\tWaiting Time");
+        System.out.println("ProcessID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around\tWaiting Time");
         for (int i = 0; i < processes.size(); i++) {
             System.out.println("\t" + processes.get(i) + "\t\t\t" + arrivalTime.get(i) + "\t\t\t\t" + burstTime.get(i)
-                    + "\t\t\t\t" + completionTime.get(i) + "\t\t\t" + turnAroundTime.get(i)); // + "\t\t\t" + waitingTime.get(i));
+                    + "\t\t\t\t" + completionTime.get(i) + "\t\t\t" + turnAroundTime.get(i) + "\t\t\t" + waitingTime.get(i));
         }
 
-        //System.out.println("\nThe Average Turn Around Time is : " + (totalTurnAroundTime / numberOfProcesses));    // printing average turnaround time.
+        //calculate average turnAroundTime
+        averageTurnAroundTime = totalTurnAroundTime / numberOfProcesses;
+        averageWaitingTime = totalWaitTime / numberOfProcesses;
+        System.out.println("Average TAT: " + averageTurnAroundTime);
+        System.out.println("Average WT: " + averageWaitingTime + " " + totalWaitTime);
 
         //continue with the SRTF algorithm
         //shortestRemainingTimeFirst(processes, arrivalTime, burstTime, completionTime, turnAroundTime);
@@ -183,7 +184,7 @@ public class Main {
     //randomizer to generate jobs
     public static void jobsFactory() {
         Random random = new Random();
-        numberOfProcesses = random.nextInt(1, 100);
+        numberOfProcesses = random.nextInt(1, 50);
         System.out.println("Number of processes: " + numberOfProcesses);
 
         //assign proportionate values to all components of the algorithm
@@ -196,7 +197,7 @@ public class Main {
 
         //Receive the arrival time and burst time for each process
         for (int i = 0; i < numberOfProcesses; i++) {
-            arrivalTime.add(i, random.nextInt(1, 100));
+            arrivalTime.add(i, i);
 
             burstTime.add(i, random.nextInt(1, 100));
             aggregate += burstTime.get(i);
