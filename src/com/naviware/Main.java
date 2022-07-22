@@ -62,14 +62,14 @@ public class Main {
             waitingTime.add(i, completionTime.get(i) - burstTime.get(i));
 
             //turnaround time = completion time - arrival time
-            turnAroundTime.add(i, completionTime.get(i) - arrivalTime.get(i));
+            turnAroundTime.add(i, waitingTime.get(i) + burstTime.get(i));
         }
 
         //Print out results
-        System.out.println("\nProcessID\tArrival Time\tBurst Time\tWaiting Time\tTurn Around\tCompletion Time");
+        System.out.println("\nProcessID\tArrival Time\tBurst Time\tWaiting Time\tTurn Around");
         for (int i = 0; i < numberOfProcesses; i++) {
             System.out.println("\t" + processes.get(i) + "\t\t\t" + arrivalTime.get(i) + "\t\t\t\t" + burstTime.get(i)
-                    + "\t\t\t" + waitingTime.get(i) + "\t\t\t\t" + turnAroundTime.get(i) + "\t\t\t" + completionTime.get(i));
+                    + "\t\t\t" + waitingTime.get(i) + "\t\t\t\t" + turnAroundTime.get(i));
         }
 
         //call the RR algorithm
