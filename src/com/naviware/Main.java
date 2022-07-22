@@ -21,49 +21,13 @@ public class Main {
     static float averageWaitingTime;
 
     public static void main(String[] args) {
+        //generate processes
         jobsFactory();
 
-        //sorting according to arrival times
-        for (int i = 0; i < processes.size(); i++) {
-            for (int j = 0; j < processes.size() - (i + 1); j++) {
-                if (arrivalTime.get(j) > arrivalTime.get(j + 1)) {
-                    //set the arrival time in order
-                    temp = arrivalTime.get(j);
-                    arrivalTime.set(j, arrivalTime.get(j + 1));
-                    arrivalTime.set(j + 1, temp);
+        sort("arrival");
 
-                    //set the burst time in order
-                    temp = burstTime.get(j);
-                    burstTime.set(j, burstTime.get(j + 1));
-                    burstTime.set(j + 1, temp);
-
-                    //set the processIDs in order
-                    temp = processes.get(j);
-                    processes.set(j, processes.get(j + 1));
-                    processes.set(j + 1, temp);
-                }
-            }
-        }
-
-        //calculate completion time
-        for (int i = 0; i < processes.size(); i++) {
-            //completion time of current process = arrivalTime + burstTime
-            if (i == 0) {
-                completionTime.add(i, arrivalTime.get(i) + burstTime.get(i));
-            } else {
-                if (arrivalTime.get(i) > completionTime.get(i - 1)) {
-                    completionTime.add(i, arrivalTime.get(i) + burstTime.get(i));
-                } else {
-                    completionTime.add(i, completionTime.get(i - 1) + burstTime.get(i));
-                }
-            }
-
-            //waiting time = completion time - burst time
-            waitingTime.add(i, completionTime.get(i) - burstTime.get(i));
-
-            //turnaround time = completion time - arrival time
-            turnAroundTime.add(i, waitingTime.get(i) + burstTime.get(i));
-        }
+        //calculate completion, waiting and turnaround time
+        calculateTimings("start");
 
         //Print out results
         System.out.println("\nProcessID\tArrival Time\tBurst Time\tWaiting Time\tTurn Around");
@@ -86,17 +50,13 @@ public class Main {
 
         //go through the queue and process jobs
         for (int i = 0; i < processes.size(); i++) {
+            //Calculate the totals and throughput
+            totalTurnAroundTime += turnAroundTime.get(i);
+            totalWaitTime += waitingTime.get(i);
+
             if (burstTime.get(i) > timeQuantum) {
                 //process and update the burst time
                 burstTime.set(i, burstTime.get(i) - timeQuantum);
-
-                completionTime.set(i, arrivalTime.get(i) + burstTime.get(i));
-
-                //turnaround time = completion time - arrival time
-                turnAroundTime.set(i, completionTime.get(i) - arrivalTime.get(i));
-
-                //waiting time = completion time - burst time
-                waitingTime.set(i, completionTime.get(i) - burstTime.get(i));
             } else {
                 burstTime.set(i, 0);
                 processes.set(i, 0);
@@ -105,19 +65,15 @@ public class Main {
                 turnAroundTime.set(i, 0);
                 completionTime.set(i, 0);
             }
-
-            //Calculate the totals and throughput
-            totalTurnAroundTime += turnAroundTime.get(i);
-            totalWaitTime += waitingTime.get(i);
         }
 
         //Remove all elements that are 0s
-        processes.removeIf(val -> (val < 1));
-        burstTime.removeIf(val -> (val < 1));
-        arrivalTime.removeIf(val -> (val < 1));
-        waitingTime.removeIf(val -> (val < 1));
-        turnAroundTime.removeIf(val -> (val < 1));
-        completionTime.removeIf(val -> (val < 1));
+        processes.removeIf(val -> (val <= 0));
+        burstTime.removeIf(val -> (val <= 0));
+        arrivalTime.removeIf(val -> (val <= 0));
+        waitingTime.removeIf(val -> (val <= 0));
+        turnAroundTime.removeIf(val -> (val <= 0));
+        completionTime.removeIf(val -> (val <= 0));
 
         //Trim the ArrayList down to size
         processes.trimToSize();
@@ -127,22 +83,27 @@ public class Main {
         turnAroundTime.trimToSize();
         completionTime.trimToSize();
 
+        sort("burst");
+
+        //calculate completion, waiting and turnaround time
+        calculateTimings("middle");
+
         //Display remaining processes and their burst times after performing Round Robin
         System.out.println("\n\nRESULT AFTER APPLYING ROUND ROBIN");
-        System.out.println("ProcessID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around\tWaiting Time");
+        System.out.println("ProcessID\tArrival Time\tBurst Time\tWaiting Time\tTurn Around\tCompletion");
         for (int i = 0; i < processes.size(); i++) {
             System.out.println("\t" + processes.get(i) + "\t\t\t" + arrivalTime.get(i) + "\t\t\t\t" + burstTime.get(i)
-                    + "\t\t\t\t" + completionTime.get(i) + "\t\t\t" + turnAroundTime.get(i) + "\t\t\t" + waitingTime.get(i));
+                    + "\t\t\t" + waitingTime.get(i) + "\t\t\t" + turnAroundTime.get(i) + "\t\t\t" + completionTime.get(i));
         }
 
         //calculate average turnAroundTime
         averageTurnAroundTime = totalTurnAroundTime / numberOfProcesses;
         averageWaitingTime = totalWaitTime / numberOfProcesses;
         System.out.println("Average TAT: " + averageTurnAroundTime);
-        System.out.println("Average WT: " + averageWaitingTime + " " + totalWaitTime);
+        System.out.println("Average WT: " + averageWaitingTime);
 
         //continue with the SRTF algorithm
-        //shortestRemainingTimeFirst(processes, arrivalTime, burstTime, completionTime, turnAroundTime);
+        shortestRemainingTimeFirst(processes, arrivalTime, burstTime, completionTime, turnAroundTime);
     }
 
     public static void shortestRemainingTimeFirst(ArrayList<Integer> processes, ArrayList<Integer> arrivalTime, ArrayList<Integer> burstTime,
@@ -184,7 +145,7 @@ public class Main {
     //randomizer to generate jobs
     public static void jobsFactory() {
         Random random = new Random();
-        numberOfProcesses = random.nextInt(1, 50);
+        numberOfProcesses = 15; //random.nextInt(1, 50);
         System.out.println("Number of processes: " + numberOfProcesses);
 
         //assign proportionate values to all components of the algorithm
@@ -203,6 +164,97 @@ public class Main {
             aggregate += burstTime.get(i);
 
             processes.add(i, i + 1);
+        }
+    }
+
+    public static void calculateTimings(String stage) {
+        System.out.println("Processes: " + processes.size());
+
+        if (stage.equals("start")) {
+            for (int i = 0; i < processes.size(); i++) {
+                //completion time of current process = arrivalTime + burstTime
+                if (i == 0) {
+                    completionTime.add(i, arrivalTime.get(i) + burstTime.get(i));
+                } else {
+                    if (arrivalTime.get(i) > completionTime.get(i - 1)) {
+                        completionTime.add(i, arrivalTime.get(i) + burstTime.get(i));
+                    } else {
+                        completionTime.add(i, completionTime.get(i - 1) + burstTime.get(i));
+                    }
+                }
+
+                //waiting time = completion time - burst time
+                waitingTime.add(i, completionTime.get(i) - burstTime.get(i));
+
+                //turnaround time = waiting time + burst time
+                turnAroundTime.add(i, waitingTime.get(i) + burstTime.get(i));
+            }
+        } else {
+            for (int i = 0; i < processes.size(); i++) {
+                //completion time of current process = arrivalTime + burstTime
+                if (i == 0) {
+                    completionTime.set(i, arrivalTime.get(i) + burstTime.get(i));
+                } else {
+                    completionTime.set(i, completionTime.get(i - 1) + burstTime.get(i));
+                }
+
+                //waiting time = completion time - burst time
+                if (i == 0) {
+                    waitingTime.set(i, 0);
+                } else {
+                    waitingTime.set(i, completionTime.get(i) - burstTime.get(i));
+                }
+
+                //turnaround time = waiting time + burst time
+                turnAroundTime.set(i, waitingTime.get(i) + burstTime.get(i));
+            }
+        }
+    }
+
+    public static void sort(String basis) {
+        if (basis.equals("arrival"))
+            //sorting according to arrival times
+            for (int i = 0; i < processes.size(); i++) {
+                for (int j = 0; j < processes.size() - (i + 1); j++) {
+                    if (arrivalTime.get(j) > arrivalTime.get(j + 1)) {
+                        //set the arrival time in order
+                        temp = arrivalTime.get(j);
+                        arrivalTime.set(j, arrivalTime.get(j + 1));
+                        arrivalTime.set(j + 1, temp);
+
+                        //set the burst time in order
+                        temp = burstTime.get(j);
+                        burstTime.set(j, burstTime.get(j + 1));
+                        burstTime.set(j + 1, temp);
+
+                        //set the processIDs in order
+                        temp = processes.get(j);
+                        processes.set(j, processes.get(j + 1));
+                        processes.set(j + 1, temp);
+                    }
+                }
+            }
+        else {
+            for (int i = 0; i < processes.size(); i++) {
+                for (int j = 0; j < processes.size() - (i + 1); j++) {
+                    if (burstTime.get(j) > burstTime.get(j + 1)) {
+                        //set the arrival time in order
+                        temp = arrivalTime.get(j);
+                        arrivalTime.set(j, arrivalTime.get(j + 1));
+                        arrivalTime.set(j + 1, temp);
+
+                        //set the burst time in order
+                        temp = burstTime.get(j);
+                        burstTime.set(j, burstTime.get(j + 1));
+                        burstTime.set(j + 1, temp);
+
+                        //set the processIDs in order
+                        temp = processes.get(j);
+                        processes.set(j, processes.get(j + 1));
+                        processes.set(j + 1, temp);
+                    }
+                }
+            }
         }
     }
 }
